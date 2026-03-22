@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Loader2, Copy, Check, Play, Image as ImageIcon, FileText, Settings, Sparkles, Dices } from 'lucide-react';
+import { Loader2, Copy, Check, Play, Image as ImageIcon, FileText, Settings, Sparkles, Dices, Calendar, Download } from 'lucide-react';
 import { generateVideoContent, GeneratedContent } from './lib/gemini';
 
 const VIDEO_TYPES = ['Pain / Fear', 'Hope / Healing', 'Command / Faith'];
@@ -14,6 +14,14 @@ const HOOKS = [
   '"Stop... this is not random."'
 ];
 
+const getParametersForDay = (d: number) => {
+  return {
+    videoType: VIDEO_TYPES[(d - 1) % VIDEO_TYPES.length],
+    topic: TOPICS[(d - 1) % TOPICS.length],
+    hook: HOOKS[(d - 1) % HOOKS.length]
+  };
+};
+
 export default function App() {
   const [day, setDay] = useState(1);
   const [videoType, setVideoType] = useState(VIDEO_TYPES[0]);
@@ -23,15 +31,27 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [content, setContent] = useState<GeneratedContent | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'script' | 'image' | 'video'>('script');
+  const [activeTab, setActiveTab] = useState<'script' | 'image' | 'video' | 'calendar'>('calendar');
   const [copied, setCopied] = useState<string | null>(null);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (targetDay?: number) => {
+    const d = targetDay || day;
+    const params = getParametersForDay(d);
+    
+    // If generating from calendar, update the state to match
+    if (targetDay) {
+      setDay(d);
+      setVideoType(params.videoType);
+      setTopic(params.topic);
+      setHook(params.hook);
+    }
+
     setIsGenerating(true);
     setError(null);
     try {
-      const result = await generateVideoContent(day, videoType, topic, hook);
+      const result = await generateVideoContent(d, params.videoType, params.topic, params.hook);
       setContent(result);
+      setActiveTab('script');
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : 'Failed to generate content');
@@ -52,15 +72,127 @@ export default function App() {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const downloadPlanCSV = () => {
+    const headers = ['Day', 'Video Type', 'Topic', 'Hook Style'];
+    const rows = Array.from({ length: 365 }, (_, i) => {
+      const d = i + 1;
+      const params = getParametersForDay(d);
+      return [d, params.videoType, params.topic, params.hook.replace(/"/g, '""')];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'divine_365_day_plan.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const renderCalendar = () => {
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">365-Day Content Calendar</h2>
+            <p className="text-slate-500 text-sm">Automatically rotated topics and emotional angles for the entire year.</p>
+          </div>
+          <button
+            onClick={downloadPlanCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-all shadow-sm w-fit"
+          >
+            <Download className="w-4 h-4" />
+            Download Plan (CSV)
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 365 }, (_, i) => i + 1).map((d) => {
+            const params = getParametersForDay(d);
+            const isCurrent = day === d;
+            
+            return (
+              <div 
+                key={d} 
+                className={`p-4 rounded-xl border transition-all group ${
+                  isCurrent 
+                    ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200' 
+                    : 'bg-white border-slate-200 hover:border-indigo-300 hover:shadow-md'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                      isCurrent ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {d}
+                    </div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Day</span>
+                  </div>
+                  <button
+                    onClick={() => handleGenerate(d)}
+                    disabled={isGenerating}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 disabled:opacity-50"
+                  >
+                    Generate
+                  </button>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                    <span className="text-xs font-semibold text-slate-700">{params.videoType}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                    <span className="text-xs font-medium text-slate-600">{params.topic}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono truncate">
+                    {params.hook}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderScript = () => {
     if (!content) return null;
     const { script } = content;
-    const textToCopy = `Title: ${script.title}\n\nScript:\n${script.content.map(c => `(${c.timestamp})\n"${c.text}"`).join('\n\n')}\n\nVoice Tone: ${script.voiceTone}\nCTA: ${script.cta}\nHashtags: ${script.hashtags}`;
+    const textToCopy = `Title: ${script.title}\nSEO Title: ${script.seoTitle}\n\nScript:\n${script.content.map(c => `(${c.timestamp})\n"${c.text}"`).join('\n\n')}\n\nVoice Tone: ${script.voiceTone}\nCTA: ${script.cta}\nHashtags: ${script.hashtags}`;
 
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex justify-between items-start">
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{script.title}</h2>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{script.title}</h2>
+            <div className="flex flex-wrap gap-2">
+              <div className="text-xs font-bold text-white bg-indigo-600 px-2 py-1 rounded uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Viral Title
+              </div>
+              <div className="text-sm font-semibold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 flex items-center gap-2">
+                {script.seoTitle}
+                <button 
+                  onClick={() => copyToClipboard(script.seoTitle, 'seo-title')}
+                  className="p-1 hover:bg-indigo-100 rounded transition-colors"
+                  title="Copy Viral Title"
+                >
+                  {copied === 'seo-title' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-indigo-400" />}
+                </button>
+              </div>
+            </div>
+          </div>
           <button 
             onClick={() => copyToClipboard(textToCopy, 'script')}
             className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
@@ -206,15 +338,18 @@ export default function App() {
         </div>
 
         <div className="space-y-6 flex-1">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Parameters</h2>
-            <button 
-              onClick={handleRandomize}
-              className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 px-2 py-1 rounded-md transition-colors"
-            >
-              <Dices className="w-3 h-3" />
-              Randomize
-            </button>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">SEO Optimized Parameters</h2>
+              <button 
+                onClick={handleRandomize}
+                className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 px-2 py-1 rounded-md transition-colors"
+              >
+                <Dices className="w-3 h-3" />
+                Randomize
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">Hook & CTA Included</p>
           </div>
 
           <div className="space-y-2">
@@ -292,61 +427,90 @@ export default function App() {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
-        {content ? (
-          <div className="max-w-4xl mx-auto p-6 md:p-10">
-            {/* Tabs */}
-            <div className="flex space-x-1 bg-slate-200/50 p-1 rounded-xl mb-8 w-fit">
-              <button
-                onClick={() => setActiveTab('script')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'script' 
-                    ? 'bg-white text-indigo-700 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                Script
-              </button>
-              <button
-                onClick={() => setActiveTab('image')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'image' 
-                    ? 'bg-white text-indigo-700 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                }`}
-              >
-                <ImageIcon className="w-4 h-4" />
-                Image Prompts
-              </button>
-              <button
-                onClick={() => setActiveTab('video')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === 'video' 
-                    ? 'bg-white text-indigo-700 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                }`}
-              >
-                <Play className="w-4 h-4" />
-                Video Prompts
-              </button>
-            </div>
+        <div className="max-w-4xl mx-auto p-6 md:p-10">
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-1 bg-slate-200/50 p-1 rounded-xl mb-8 w-fit">
+            <button
+              onClick={() => setActiveTab('calendar')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'calendar' 
+                  ? 'bg-white text-indigo-700 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              365-Day Plan
+            </button>
+            <button
+              onClick={() => setActiveTab('script')}
+              disabled={!content}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                activeTab === 'script' 
+                  ? 'bg-white text-indigo-700 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Script
+            </button>
+            <button
+              onClick={() => setActiveTab('image')}
+              disabled={!content}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                activeTab === 'image' 
+                  ? 'bg-white text-indigo-700 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <ImageIcon className="w-4 h-4" />
+              Image Prompts
+            </button>
+            <button
+              onClick={() => setActiveTab('video')}
+              disabled={!content}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                activeTab === 'video' 
+                  ? 'bg-white text-indigo-700 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <Play className="w-4 h-4" />
+              Video Prompts
+            </button>
+          </div>
 
-            {/* Tab Content */}
-            <div className="min-h-[500px]">
-              {activeTab === 'script' && renderScript()}
-              {activeTab === 'image' && renderImagePrompts()}
-              {activeTab === 'video' && renderVideoPrompts()}
-            </div>
+          {/* Tab Content */}
+          <div className="min-h-[500px]">
+            {activeTab === 'calendar' && renderCalendar()}
+            {activeTab === 'script' && content && renderScript()}
+            {activeTab === 'image' && content && renderImagePrompts()}
+            {activeTab === 'video' && content && renderVideoPrompts()}
+            
+            {activeTab !== 'calendar' && !content && !isGenerating && (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 p-10 text-center">
+                <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                  <Sparkles className="w-10 h-10 text-slate-300" />
+                </div>
+                <h2 className="text-xl font-medium text-slate-600 mb-2">No Content Generated</h2>
+                <p className="max-w-md text-sm">Select a day from the calendar or use the manual controls to generate content.</p>
+                <button 
+                  onClick={() => setActiveTab('calendar')}
+                  className="mt-6 text-indigo-600 font-semibold hover:underline"
+                >
+                  Back to Calendar
+                </button>
+              </div>
+            )}
+            
+            {isGenerating && (
+              <div className="h-full flex flex-col items-center justify-center p-10 text-center">
+                <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
+                <h2 className="text-xl font-medium text-slate-900">Generating Divine Content...</h2>
+                <p className="text-slate-500 text-sm mt-2">Crafting your script, image prompts, and video scenes.</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400 p-10 text-center">
-            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-              <Sparkles className="w-10 h-10 text-slate-300" />
-            </div>
-            <h2 className="text-xl font-medium text-slate-600 mb-2">Ready to Generate</h2>
-            <p className="max-w-md text-sm">Configure your video parameters in the sidebar and click generate to create a complete script, image prompts, and video prompts.</p>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

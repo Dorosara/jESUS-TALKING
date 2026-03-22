@@ -5,6 +5,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 export interface GeneratedContent {
   script: {
     title: string;
+    seoTitle: string;
     content: { timestamp: string; text: string }[];
     voiceTone: string;
     cta: string;
@@ -56,6 +57,14 @@ Rules for Script:
 - Make it feel human, not robotic.
 - Highly relatable to real-life struggles.
 - Total length should be around 60 seconds when spoken slowly.
+- Generate an "seoTitle" that is a viral, high-CTR headline (max 70 characters). 
+- The SEO title MUST follow this formula: [HOOK] + [PAIN POINT/TOPIC] + [EMOTIONAL TRIGGER] + [URGENT CTA].
+- Examples of high-performing titles:
+    * "STOP! Feeling Lonely? Jesus Is With You Right Now! Type AMEN"
+    * "WAIT! Your Debt Ends Today! God Has A Plan! Comment YES"
+    * "WATCH THIS! Tired of Anxiety? Jesus Brings Peace! Share This"
+    * "DON'T SCROLL! Your Miracle Is Coming! Believe It! Type AMEN"
+- Be optimized for YouTube Shorts and TikTok search algorithms.
 
 Image Prompts Rules:
 - Break the script into 4–6 scenes.
@@ -81,6 +90,7 @@ Video Prompts Rules:
             type: Type.OBJECT,
             properties: {
               title: { type: Type.STRING },
+              seoTitle: { type: Type.STRING, description: "SEO-friendly title including hook and CTA" },
               content: {
                 type: Type.ARRAY,
                 items: {
@@ -96,7 +106,7 @@ Video Prompts Rules:
               cta: { type: Type.STRING },
               hashtags: { type: Type.STRING },
             },
-            required: ["title", "content", "voiceTone", "cta", "hashtags"],
+            required: ["title", "seoTitle", "content", "voiceTone", "cta", "hashtags"],
           },
           imagePrompts: {
             type: Type.ARRAY,
