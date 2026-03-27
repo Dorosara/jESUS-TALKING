@@ -40,11 +40,15 @@ export async function generateThumbnailImage(prompt: string): Promise<string> {
     contents: {
       parts: [
         {
-          text: `Generate a high-impact, viral YouTube Shorts/TikTok thumbnail background. 
-          Style: Cinematic, vibrant colors, high contrast, depth of field. 
+          text: `Generate an ultra-attractive, vibrant, and viral YouTube Shorts thumbnail background. 
+          Style: Cinematic, hyper-realistic, saturated colors, high contrast, dramatic lighting. 
           Subject: ${prompt}. 
-          No text in the image itself, just the background scene. 
-          Resolution: 9:16 aspect ratio style.`,
+          Requirements: 
+          - Use a "pop" of color (neon, bright gold, or deep red).
+          - Ensure there is a clear focal point.
+          - No text in the image itself (text will be added later).
+          - Vertical 9:16 aspect ratio.
+          - Make it look like a high-budget movie poster.`,
         },
       ],
     },
@@ -94,12 +98,14 @@ Rules for Script:
 - Total length should be around 60 seconds when spoken slowly.
 - Generate an "seoTitle" that is a viral, high-CTR headline (max 70 characters). 
 - The SEO title MUST follow this formula: [HOOK] + [PAIN POINT/TOPIC] + [EMOTIONAL TRIGGER] + [URGENT CTA].
+- Incorporate high-volume SEO keywords related to Jesus, faith, miracles, and life-changing advice.
 - Examples of high-performing titles:
     * "STOP! Feeling Lonely? Jesus Is With You Right Now! Type AMEN"
     * "WAIT! Your Debt Ends Today! God Has A Plan! Comment YES"
     * "WATCH THIS! Tired of Anxiety? Jesus Brings Peace! Share This"
     * "DON'T SCROLL! Your Miracle Is Coming! Believe It! Type AMEN"
 - Be optimized for YouTube Shorts and TikTok search algorithms.
+- The "overlayText" in the thumbnail object should be the most "clickable" part of this title, using 2-4 words in ALL CAPS.
 
 Thumbnail Rules:
 - Generate a "thumbnail" object with:

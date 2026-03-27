@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Loader2, Copy, Check, Play, Image as ImageIcon, FileText, Settings, Sparkles, Dices, Calendar, Download } from 'lucide-react';
+import { Loader2, Copy, Check, Play, Image as ImageIcon, FileText, Settings, Sparkles, Dices, Calendar, Download, Twitter, Facebook, MessageCircle, Send, Share2 } from 'lucide-react';
 import { generateVideoContent, GeneratedContent, generateThumbnailImage } from './lib/gemini';
 
 const VIDEO_TYPES = ['Pain / Fear', 'Hope / Healing', 'Command / Faith'];
@@ -23,7 +23,11 @@ const getParametersForDay = (d: number) => {
 };
 
 export default function App() {
-  const [day, setDay] = useState(1);
+  const [day, setDay] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const d = parseInt(params.get('day') || '1');
+    return d >= 1 && d <= 365 ? d : 1;
+  });
   const [videoType, setVideoType] = useState(VIDEO_TYPES[0]);
   const [topic, setTopic] = useState(TOPICS[0]);
   const [hook, setHook] = useState(HOOKS[0]);
@@ -35,6 +39,24 @@ export default function App() {
   const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
   const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  
+  // Update URL when day changes
+  React.useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('day', day.toString());
+    window.history.replaceState({}, '', url.toString());
+  }, [day]);
+
+  // Handle initial load with day parameter
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('day')) {
+      const d = parseInt(params.get('day') || '1');
+      if (d >= 1 && d <= 365) {
+        handleGenerate(d);
+      }
+    }
+  }, []);
 
   const handleGenerate = async (targetDay?: number) => {
     const d = targetDay || day;
@@ -84,6 +106,57 @@ export default function App() {
     navigator.clipboard.writeText(text);
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const ShareMenu = ({ title, text }: { title: string; text: string }) => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?day=${day}`;
+    const shareLinks = [
+      {
+        name: 'Twitter',
+        icon: <Twitter className="w-4 h-4" />,
+        url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text.substring(0, 200) + '...')}&url=${encodeURIComponent(url)}`,
+        color: 'hover:bg-sky-50 hover:text-sky-600'
+      },
+      {
+        name: 'Facebook',
+        icon: <Facebook className="w-4 h-4" />,
+        url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+        color: 'hover:bg-blue-50 hover:text-blue-600'
+      },
+      {
+        name: 'WhatsApp',
+        icon: <MessageCircle className="w-4 h-4" />,
+        url: `https://wa.me/?text=${encodeURIComponent(text.substring(0, 500) + '\n\nRead more: ' + url)}`,
+        color: 'hover:bg-emerald-50 hover:text-emerald-600'
+      },
+      {
+        name: 'Telegram',
+        icon: <Send className="w-4 h-4" />,
+        url: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text.substring(0, 500))}`,
+        color: 'hover:bg-blue-50 hover:text-blue-500'
+      }
+    ];
+
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2 hidden sm:inline">Share</span>
+        <div className="flex items-center gap-1">
+          {shareLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-1.5 rounded-lg transition-all text-slate-400 ${link.color}`}
+              title={`Share on ${link.name}`}
+            >
+              {link.icon}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const downloadPlanCSV = () => {
@@ -207,13 +280,16 @@ export default function App() {
               </div>
             </div>
           </div>
-          <button 
-            onClick={() => copyToClipboard(textToCopy, 'script')}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
-          >
-            {copied === 'script' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-            {copied === 'script' ? 'Copied!' : 'Copy All'}
-          </button>
+          <div className="flex items-center gap-4">
+            <ShareMenu title={script.title} text={`Check out this viral Jesus video script: "${script.seoTitle}"\n\n${script.content[0].text}...`} />
+            <button 
+              onClick={() => copyToClipboard(textToCopy, 'script')}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
+            >
+              {copied === 'script' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              {copied === 'script' ? 'Copied!' : 'Copy All'}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -256,13 +332,16 @@ export default function App() {
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-900">Midjourney / Image Prompts</h2>
-          <button 
-            onClick={() => copyToClipboard(textToCopy, 'image')}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
-          >
-            {copied === 'image' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-            Copy All
-          </button>
+          <div className="flex items-center gap-4">
+            <ShareMenu title="Image Prompts" text={`Viral Image Prompts for Day ${day}:\n\n${content.imagePrompts[0].setting}...`} />
+            <button 
+              onClick={() => copyToClipboard(textToCopy, 'image')}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
+            >
+              {copied === 'image' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              Copy All
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -301,13 +380,16 @@ export default function App() {
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-900">Veo 3 / Video Prompts</h2>
-          <button 
-            onClick={() => copyToClipboard(textToCopy, 'video')}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
-          >
-            {copied === 'video' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-            Copy All
-          </button>
+          <div className="flex items-center gap-4">
+            <ShareMenu title="Video Prompts" text={`Viral Video Prompts for Day ${day}:\n\n${content.videoPrompts[0].action}...`} />
+            <button 
+              onClick={() => copyToClipboard(textToCopy, 'video')}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
+            >
+              {copied === 'video' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              Copy All
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -346,13 +428,16 @@ export default function App() {
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-900">Viral Thumbnail Design</h2>
-          <button 
-            onClick={() => copyToClipboard(textToCopy, 'thumbnail')}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
-          >
-            {copied === 'thumbnail' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-            Copy Design Info
-          </button>
+          <div className="flex items-center gap-4">
+            <ShareMenu title="Thumbnail Design" text={`Check out my viral thumbnail design for Day ${day}!\n\nTitle: ${content.script.seoTitle}\nText: ${thumbnail.overlayText}`} />
+            <button 
+              onClick={() => copyToClipboard(textToCopy, 'thumbnail')}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
+            >
+              {copied === 'thumbnail' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              Copy Design Info
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -453,6 +538,16 @@ export default function App() {
           {/* Design Details */}
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Viral SEO Title</h4>
+                <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100 text-lg font-black text-indigo-900 leading-tight">
+                  {content.script.seoTitle}
+                </div>
+                <p className="mt-2 text-[10px] text-slate-500 italic">
+                  * Use this exact title on YouTube for maximum search visibility.
+                </p>
+              </div>
+
               <div>
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Background Prompt</h4>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-700 font-mono leading-relaxed">
