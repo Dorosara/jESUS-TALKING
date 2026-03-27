@@ -26,6 +26,41 @@ export interface GeneratedContent {
     emotion: string;
     lightingTransition: string;
   }[];
+  thumbnail: {
+    backgroundPrompt: string;
+    overlayText: string;
+    colorPalette: string[];
+    designNotes: string;
+  };
+}
+
+export async function generateThumbnailImage(prompt: string): Promise<string> {
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash-image',
+    contents: {
+      parts: [
+        {
+          text: `Generate a high-impact, viral YouTube Shorts/TikTok thumbnail background. 
+          Style: Cinematic, vibrant colors, high contrast, depth of field. 
+          Subject: ${prompt}. 
+          No text in the image itself, just the background scene. 
+          Resolution: 9:16 aspect ratio style.`,
+        },
+      ],
+    },
+    config: {
+      imageConfig: {
+        aspectRatio: "9:16",
+      },
+    },
+  });
+
+  for (const part of response.candidates?.[0]?.content?.parts || []) {
+    if (part.inlineData) {
+      return `data:image/png;base64,${part.inlineData.data}`;
+    }
+  }
+  throw new Error("Failed to generate thumbnail image");
 }
 
 export async function generateVideoContent(
@@ -65,6 +100,13 @@ Rules for Script:
     * "WATCH THIS! Tired of Anxiety? Jesus Brings Peace! Share This"
     * "DON'T SCROLL! Your Miracle Is Coming! Believe It! Type AMEN"
 - Be optimized for YouTube Shorts and TikTok search algorithms.
+
+Thumbnail Rules:
+- Generate a "thumbnail" object with:
+    - "backgroundPrompt": A specific Midjourney/DALL-E prompt for a high-impact background image featuring Jesus in a cinematic, emotional setting related to the Topic.
+    - "overlayText": The most powerful 3-5 words from the SEO Title to be used as a large text overlay.
+    - "colorPalette": 3 vibrant, high-contrast colors (hex codes) that make the thumbnail pop.
+    - "designNotes": Advice on where to place text and what facial expression Jesus should have for maximum CTR.
 
 Image Prompts Rules:
 - Break the script into 4–6 scenes.
@@ -108,6 +150,16 @@ Video Prompts Rules:
             },
             required: ["title", "seoTitle", "content", "voiceTone", "cta", "hashtags"],
           },
+          thumbnail: {
+            type: Type.OBJECT,
+            properties: {
+              backgroundPrompt: { type: Type.STRING },
+              overlayText: { type: Type.STRING },
+              colorPalette: { type: Type.ARRAY, items: { type: Type.STRING } },
+              designNotes: { type: Type.STRING },
+            },
+            required: ["backgroundPrompt", "overlayText", "colorPalette", "designNotes"],
+          },
           imagePrompts: {
             type: Type.ARRAY,
             items: {
@@ -138,7 +190,7 @@ Video Prompts Rules:
             },
           },
         },
-        required: ["script", "imagePrompts", "videoPrompts"],
+        required: ["script", "thumbnail", "imagePrompts", "videoPrompts"],
       },
     },
   });

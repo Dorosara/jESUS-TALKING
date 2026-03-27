@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, Copy, Check, Play, Image as ImageIcon, FileText, Settings, Sparkles, Dices, Calendar, Download } from 'lucide-react';
-import { generateVideoContent, GeneratedContent } from './lib/gemini';
+import { generateVideoContent, GeneratedContent, generateThumbnailImage } from './lib/gemini';
 
 const VIDEO_TYPES = ['Pain / Fear', 'Hope / Healing', 'Command / Faith'];
 const TOPICS = [
@@ -31,7 +31,9 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [content, setContent] = useState<GeneratedContent | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'script' | 'image' | 'video' | 'calendar'>('calendar');
+  const [activeTab, setActiveTab] = useState<'script' | 'image' | 'video' | 'thumbnail' | 'calendar'>('calendar');
+  const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const handleGenerate = async (targetDay?: number) => {
@@ -47,11 +49,23 @@ export default function App() {
     }
 
     setIsGenerating(true);
+    setThumbnailImage(null);
     setError(null);
     try {
       const result = await generateVideoContent(d, params.videoType, params.topic, params.hook);
       setContent(result);
       setActiveTab('script');
+      
+      // Generate thumbnail image in the background
+      setIsGeneratingThumbnail(true);
+      try {
+        const imageUrl = await generateThumbnailImage(result.thumbnail.backgroundPrompt);
+        setThumbnailImage(imageUrl);
+      } catch (thumbnailErr) {
+        console.error("Thumbnail generation failed:", thumbnailErr);
+      } finally {
+        setIsGeneratingThumbnail(false);
+      }
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : 'Failed to generate content');
@@ -323,6 +337,164 @@ export default function App() {
     );
   };
 
+  const renderThumbnail = () => {
+    if (!content) return null;
+    const { thumbnail } = content;
+    const textToCopy = `Background Prompt: ${thumbnail.backgroundPrompt}\nOverlay Text: ${thumbnail.overlayText}\nColor Palette: ${thumbnail.colorPalette.join(', ')}\nDesign Notes: ${thumbnail.designNotes}`;
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold text-slate-900">Viral Thumbnail Design</h2>
+          <button 
+            onClick={() => copyToClipboard(textToCopy, 'thumbnail')}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200 transition-colors"
+          >
+            {copied === 'thumbnail' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+            Copy Design Info
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Visual Preview */}
+          <div className="space-y-4">
+            <div className="relative aspect-[9/16] bg-slate-200 rounded-2xl overflow-hidden shadow-2xl border-4 border-white max-w-[300px] mx-auto group">
+              {thumbnailImage ? (
+                <>
+                  <img 
+                    src={thumbnailImage} 
+                    alt="Thumbnail Background" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                    <h3 
+                      className="text-3xl font-black uppercase tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]"
+                      style={{ color: thumbnail.colorPalette[0] || '#FFFFFF' }}
+                    >
+                      {thumbnail.overlayText}
+                    </h3>
+                  </div>
+                </>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center p-10 text-center">
+                  {isGeneratingThumbnail ? (
+                    <>
+                      <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
+                      <p className="text-sm font-bold text-slate-600">Generating Background...</p>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="w-10 h-10 text-slate-400 mb-4" />
+                      <p className="text-sm text-slate-500">Background failed to load</p>
+                    </>
+                  )}
+                </div>
+              )}
+              <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity flex justify-between items-center">
+                <p className="text-[10px] text-white/80 font-medium leading-tight">
+                  Preview: Background + Overlay Text
+                </p>
+                {thumbnailImage && (
+                  <button
+                    onClick={() => {
+                      const canvas = document.createElement('canvas');
+                      const ctx = canvas.getContext('2d');
+                      const img = new Image();
+                      img.crossOrigin = "anonymous";
+                      img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        if (ctx) {
+                          // Draw background
+                          ctx.drawImage(img, 0, 0);
+                          
+                          // Draw text overlay
+                          const fontSize = Math.floor(canvas.width * 0.1);
+                          ctx.font = `900 ${fontSize}px sans-serif`;
+                          ctx.fillStyle = thumbnail.colorPalette[0] || '#FFFFFF';
+                          ctx.textAlign = 'center';
+                          ctx.textBaseline = 'middle';
+                          ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                          ctx.shadowBlur = 10;
+                          ctx.shadowOffsetX = 0;
+                          ctx.shadowOffsetY = 4;
+                          
+                          // Handle multi-line text if needed
+                          const words = thumbnail.overlayText.toUpperCase().split(' ');
+                          const lineHeight = fontSize * 1.1;
+                          const startY = canvas.height / 2 - ((words.length - 1) * lineHeight) / 2;
+                          
+                          words.forEach((word, i) => {
+                            ctx.fillText(word, canvas.width / 2, startY + (i * lineHeight));
+                          });
+                          
+                          const link = document.createElement('a');
+                          link.href = canvas.toDataURL('image/png');
+                          link.download = `divine_thumbnail_day_${day}.png`;
+                          link.click();
+                        }
+                      };
+                      img.src = thumbnailImage;
+                    }}
+                    className="p-1.5 bg-white/20 hover:bg-white/40 rounded-lg transition-colors text-white"
+                    title="Download Composed Thumbnail"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-center text-xs text-slate-400 italic">
+              * This is a mock-up. Use the background prompt in Midjourney for best results.
+            </p>
+          </div>
+
+          {/* Design Details */}
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Background Prompt</h4>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-700 font-mono leading-relaxed">
+                  {thumbnail.backgroundPrompt}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Overlay Text</h4>
+                <div className="text-2xl font-black text-indigo-600 tracking-tight">
+                  "{thumbnail.overlayText}"
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Viral Color Palette</h4>
+                <div className="flex gap-3">
+                  {thumbnail.colorPalette.map((color, i) => (
+                    <div key={i} className="flex flex-col items-center gap-1">
+                      <div 
+                        className="w-12 h-12 rounded-xl shadow-inner border border-black/5" 
+                        style={{ backgroundColor: color }}
+                      ></div>
+                      <span className="text-[10px] font-mono text-slate-500">{color}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Design Strategy</h4>
+                <div className="text-sm text-slate-600 leading-relaxed bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                  {thumbnail.designNotes}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col md:flex-row">
       {/* Sidebar Controls */}
@@ -477,6 +649,18 @@ export default function App() {
               <Play className="w-4 h-4" />
               Video Prompts
             </button>
+            <button
+              onClick={() => setActiveTab('thumbnail')}
+              disabled={!content}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                activeTab === 'thumbnail' 
+                  ? 'bg-white text-indigo-700 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              Thumbnail
+            </button>
           </div>
 
           {/* Tab Content */}
@@ -485,6 +669,7 @@ export default function App() {
             {activeTab === 'script' && content && renderScript()}
             {activeTab === 'image' && content && renderImagePrompts()}
             {activeTab === 'video' && content && renderVideoPrompts()}
+            {activeTab === 'thumbnail' && content && renderThumbnail()}
             
             {activeTab !== 'calendar' && !content && !isGenerating && (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 p-10 text-center">
