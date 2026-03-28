@@ -418,6 +418,11 @@ export default function App() {
                 <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Dialogue (Lip Sync)</div>
                 <div className="text-emerald-900 font-medium">"{prompt.dialogue}"</div>
               </div>
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <div className="text-xs font-mono text-slate-500 bg-slate-50 p-2 rounded">
+                  Veo Prompt: Jesus, {prompt.action}, {prompt.cameraMovement}, {prompt.emotion}, {prompt.lightingTransition}, lighting, hyper-realistic, 4k, cinematic --ar 9:16
+                </div>
+              </div>
             </div>
           ))}
         </div>

@@ -128,6 +128,7 @@ Video Prompts Rules:
     - Natural human facial movement.
     - Cinematic camera motion.
     - Emotional pacing.
+    - MUST INCLUDE these tags in every prompt: "lighting, hyper-realistic, 4k, cinematic --ar 9:16".
 - Style: Ultra-realistic, Smooth transitions, Soft spiritual background music.
 `;
 
