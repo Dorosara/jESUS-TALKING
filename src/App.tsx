@@ -379,7 +379,13 @@ export default function App() {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-slate-900">Veo 3 / Video Prompts</h2>
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-slate-900">Veo 3 / Video Prompts</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-white bg-emerald-600 px-2 py-0.5 rounded uppercase tracking-wider">9:16 Optimized</span>
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">YouTube Shorts / TikTok</span>
+            </div>
+          </div>
           <div className="flex items-center gap-4">
             <ShareMenu title="Video Prompts" text={`Viral Video Prompts for Day ${day}:\n\n${content.videoPrompts[0].action}...`} />
             <button 

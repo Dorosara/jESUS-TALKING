@@ -122,7 +122,12 @@ Image Prompts Rules:
 Video Prompts Rules:
 - Convert each scene into a realistic video prompt for Veo 3.
 - Character: Jesus.
-- Requirements: Perfect lip sync with dialogue, Natural human facial movement, Cinematic camera motion, Emotional pacing.
+- Requirements: 
+    - Aspect Ratio: 9:16 (Vertical/YouTube Shorts).
+    - Perfect lip sync with dialogue.
+    - Natural human facial movement.
+    - Cinematic camera motion.
+    - Emotional pacing.
 - Style: Ultra-realistic, Smooth transitions, Soft spiritual background music.
 `;
 
