@@ -6,8 +6,8 @@ export interface GeneratedContent {
   script: {
     title: string;
     seoTitle: string;
-    content: { timestamp: string; text: string }[];
-    voiceTone: string;
+    content: { timestamp: string; text: string; voiceTone: string }[];
+    voiceTone: string; // Overall tone
     cta: string;
     hashtags: string;
   };
@@ -24,6 +24,7 @@ export interface GeneratedContent {
     cameraMovement: string;
     dialogue: string;
     emotion: string;
+    voiceTone: string;
     lightingTransition: string;
   }[];
   thumbnail: {
@@ -152,8 +153,9 @@ Video Prompts Rules:
                   properties: {
                     timestamp: { type: Type.STRING },
                     text: { type: Type.STRING },
+                    voiceTone: { type: Type.STRING, description: "Specific voice tone for this scene" },
                   },
-                  required: ["timestamp", "text"],
+                  required: ["timestamp", "text", "voiceTone"],
                 },
               },
               voiceTone: { type: Type.STRING },
@@ -186,21 +188,22 @@ Video Prompts Rules:
               required: ["scene", "setting", "emotion", "cameraAngle", "lighting"],
             },
           },
-          videoPrompts: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                scene: { type: Type.INTEGER },
-                action: { type: Type.STRING },
-                cameraMovement: { type: Type.STRING },
-                dialogue: { type: Type.STRING },
-                emotion: { type: Type.STRING },
-                lightingTransition: { type: Type.STRING },
+            videoPrompts: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  scene: { type: Type.INTEGER },
+                  action: { type: Type.STRING },
+                  cameraMovement: { type: Type.STRING },
+                  dialogue: { type: Type.STRING },
+                  emotion: { type: Type.STRING },
+                  voiceTone: { type: Type.STRING, description: "Specific voice tone for this video scene" },
+                  lightingTransition: { type: Type.STRING },
+                },
+                required: ["scene", "action", "cameraMovement", "dialogue", "emotion", "voiceTone", "lightingTransition"],
               },
-              required: ["scene", "action", "cameraMovement", "dialogue", "emotion", "lightingTransition"],
             },
-          },
         },
         required: ["script", "thumbnail", "imagePrompts", "videoPrompts"],
       },

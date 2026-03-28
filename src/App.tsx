@@ -256,7 +256,7 @@ export default function App() {
   const renderScript = () => {
     if (!content) return null;
     const { script } = content;
-    const textToCopy = `Title: ${script.title}\nSEO Title: ${script.seoTitle}\n\nScript:\n${script.content.map(c => `(${c.timestamp})\n"${c.text}"`).join('\n\n')}\n\nVoice Tone: ${script.voiceTone}\nCTA: ${script.cta}\nHashtags: ${script.hashtags}`;
+    const textToCopy = `Title: ${script.title}\nSEO Title: ${script.seoTitle}\n\nScript:\n${script.content.map(c => `(${c.timestamp}) [Tone: ${c.voiceTone}]\n"${c.text}"`).join('\n\n')}\n\nVoice Tone: ${script.voiceTone}\nCTA: ${script.cta}\nHashtags: ${script.hashtags}`;
 
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -297,6 +297,7 @@ export default function App() {
             <div key={idx} className="flex gap-4 group">
               <div className="w-20 shrink-0 text-xs font-mono text-slate-400 pt-1">
                 {block.timestamp}
+                <div className="mt-1 text-[10px] text-indigo-400 font-bold uppercase tracking-tighter">{block.voiceTone}</div>
               </div>
               <div className="text-lg text-slate-800 font-medium leading-relaxed border-l-2 border-indigo-100 pl-4 group-hover:border-indigo-400 transition-colors">
                 "{block.text}"
@@ -374,7 +375,7 @@ export default function App() {
 
   const renderVideoPrompts = () => {
     if (!content) return null;
-    const textToCopy = content.videoPrompts.map(p => `Scene ${p.scene}:\nAction: ${p.action}\nCamera: ${p.cameraMovement}\nDialogue: "${p.dialogue}"\nEmotion: ${p.emotion}\nLighting: ${p.lightingTransition}`).join('\n\n');
+    const textToCopy = content.videoPrompts.map(p => `Scene ${p.scene}:\nAction: ${p.action}\nCamera: ${p.cameraMovement}\nDialogue: "${p.dialogue}"\nEmotion: ${p.emotion}\nVoice Tone: ${p.voiceTone}\nLighting: ${p.lightingTransition}`).join('\n\n');
 
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -412,6 +413,7 @@ export default function App() {
                 <div className="col-span-1 md:col-span-2"><span className="font-semibold text-slate-500">Action:</span> <span className="text-slate-800">{prompt.action}</span></div>
                 <div><span className="font-semibold text-slate-500">Camera:</span> <span className="text-slate-800">{prompt.cameraMovement}</span></div>
                 <div><span className="font-semibold text-slate-500">Emotion:</span> <span className="text-slate-800">{prompt.emotion}</span></div>
+                <div><span className="font-semibold text-slate-500">Voice Tone:</span> <span className="text-emerald-600 font-bold">{prompt.voiceTone}</span></div>
                 <div className="col-span-1 md:col-span-2"><span className="font-semibold text-slate-500">Lighting:</span> <span className="text-slate-800">{prompt.lightingTransition}</span></div>
               </div>
               <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-lg">
@@ -420,7 +422,7 @@ export default function App() {
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100">
                 <div className="text-xs font-mono text-slate-500 bg-slate-50 p-2 rounded">
-                  Veo Prompt: Jesus, {prompt.action}, {prompt.cameraMovement}, {prompt.emotion}, {prompt.lightingTransition}, lighting, hyper-realistic, 4k, cinematic --ar 9:16
+                  Veo Prompt: Jesus, {prompt.action}, {prompt.cameraMovement}, {prompt.emotion}, {prompt.voiceTone} tone, {prompt.lightingTransition}, lighting, hyper-realistic, 4k, cinematic --ar 9:16
                 </div>
               </div>
             </div>
