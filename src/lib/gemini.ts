@@ -77,6 +77,7 @@ export async function generateVideoContent(
   const prompt = `
 Act as a viral YouTube Shorts creator, cinematic AI image prompt engineer, and cinematic video director.
 Create a complete content package for a 60-second "AI Talking Jesus" video.
+This is part of a 365-day content series specifically designed for YouTube Shorts, TikTok, and Instagram Reels.
 
 Inputs:
 Day: ${day}
@@ -124,7 +125,7 @@ Video Prompts Rules:
 - Convert each scene into a realistic video prompt for Veo 3.
 - Character: Jesus.
 - Requirements: 
-    - Aspect Ratio: 9:16 (Vertical/YouTube Shorts).
+    - Aspect Ratio: 9:16 (Vertical/YouTube Shorts) - THIS IS MANDATORY FOR ALL 365 DAYS.
     - Perfect lip sync with dialogue.
     - Natural human facial movement.
     - Cinematic camera motion.

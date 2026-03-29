@@ -160,11 +160,19 @@ export default function App() {
   };
 
   const downloadPlanCSV = () => {
-    const headers = ['Day', 'Video Type', 'Topic', 'Hook Style'];
+    const headers = ['Day', 'Video Type', 'Topic', 'Hook Style', 'Video Format', 'Resolution', 'Tags'];
     const rows = Array.from({ length: 365 }, (_, i) => {
       const d = i + 1;
       const params = getParametersForDay(d);
-      return [d, params.videoType, params.topic, params.hook.replace(/"/g, '""')];
+      return [
+        d, 
+        params.videoType, 
+        params.topic, 
+        params.hook.replace(/"/g, '""'),
+        '9:16 Vertical (YouTube Shorts)',
+        '1080x1920 (4K Optimized)',
+        'lighting, hyper-realistic, 4k, cinematic'
+      ];
     });
 
     const csvContent = [
@@ -188,7 +196,13 @@ export default function App() {
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">365-Day Content Calendar</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">365-Day Content Calendar</h2>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-bold text-white bg-emerald-600 px-2 py-0.5 rounded uppercase tracking-wider">9:16 Optimized</span>
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">YouTube Shorts / TikTok Ready</span>
+              </div>
+            </div>
             <p className="text-slate-500 text-sm">Automatically rotated topics and emotional angles for the entire year.</p>
           </div>
           <button
@@ -198,6 +212,27 @@ export default function App() {
             <Download className="w-4 h-4" />
             Download Plan (CSV)
           </button>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Production Specification (All 365 Days)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-slate-500">Aspect Ratio</div>
+              <div className="text-lg font-black text-indigo-600">9:16 (Vertical)</div>
+              <div className="text-[10px] text-slate-400">Optimized for YouTube Shorts, TikTok, Reels</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-slate-500">Resolution & Quality</div>
+              <div className="text-lg font-black text-indigo-600">4K / Hyper-Realistic</div>
+              <div className="text-[10px] text-slate-400">Cinematic lighting, 1080x1920 base</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-slate-500">AI Compatibility</div>
+              <div className="text-lg font-black text-indigo-600">Veo 3 / Midjourney</div>
+              <div className="text-[10px] text-slate-400">Lip-sync and emotional pacing ready</div>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
