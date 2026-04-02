@@ -43,7 +43,7 @@ export async function generateThumbnailImage(prompt: string): Promise<string> {
         {
           text: `Generate an ultra-attractive, vibrant, and viral YouTube Shorts thumbnail background. 
           Style: Cinematic, hyper-realistic, saturated colors, high contrast, dramatic lighting. 
-          Subject: ${prompt}. 
+          Subject: Jesus with long hair and white shining cloths, ${prompt}. 
           Requirements: 
           - Use a "pop" of color (neon, bright gold, or deep red).
           - Ensure there is a clear focal point.
@@ -119,13 +119,15 @@ Thumbnail Rules:
 Image Prompts Rules:
 - Break the script into 4–6 scenes.
 - Generate ultra-realistic image prompts of Jesus.
-- Style: Hyper-realistic, White robe, soft glowing aura, Golden cinematic lighting, Emotional facial expressions, 4K, depth of field.
+- Character: Jesus with long hair and white shining cloths.
+- Style: Hyper-realistic, white shining cloths, long hair, soft glowing aura, Golden cinematic lighting, Emotional facial expressions, 4K, depth of field.
 
 Video Prompts Rules:
 - Convert each scene into a realistic video prompt for Veo 3.
-- Character: Jesus.
+- Character: Jesus with long hair and white shining cloths.
 - Requirements: 
     - Aspect Ratio: 9:16 (Vertical/YouTube Shorts) - THIS IS MANDATORY FOR ALL 365 DAYS.
+    - Appearance: Long hair, white shining cloths.
     - Perfect lip sync with dialogue.
     - Natural human facial movement.
     - Cinematic camera motion.

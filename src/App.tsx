@@ -398,7 +398,7 @@ export default function App() {
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100">
                 <div className="text-xs font-mono text-slate-500 bg-slate-50 p-2 rounded">
-                  /imagine prompt: Jesus, {prompt.setting}, {prompt.emotion} expression, {prompt.cameraAngle}, {prompt.lighting}, hyper-realistic, 4k, cinematic --ar 9:16
+                  /imagine prompt: Jesus with long hair and white shining cloths, {prompt.setting}, {prompt.emotion} expression, {prompt.cameraAngle}, {prompt.lighting}, hyper-realistic, 4k, cinematic --ar 9:16
                 </div>
               </div>
             </div>
@@ -457,7 +457,7 @@ export default function App() {
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100">
                 <div className="text-xs font-mono text-slate-500 bg-slate-50 p-2 rounded">
-                  Veo Prompt: Jesus, {prompt.action}, {prompt.cameraMovement}, {prompt.emotion}, {prompt.voiceTone} tone, {prompt.lightingTransition}, lighting, hyper-realistic, 4k, cinematic --ar 9:16
+                  Veo Prompt: Jesus with long hair and white shining cloths, {prompt.action}, {prompt.cameraMovement}, {prompt.emotion}, {prompt.voiceTone} tone, {prompt.lightingTransition}, lighting, hyper-realistic, 4k, cinematic --ar 9:16
                 </div>
               </div>
             </div>
